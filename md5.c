@@ -24,22 +24,56 @@ typedef struct s_value {
 
 typedef struct s_dict
 {
-    t_value *buffer;
+    t_value **buffer;
     size_t len_buf;
     size_t cap_buf;
-    void (*set)(struct s_dict *self, t_value *value, t_type type);
-    void *(*get)(struct s_dict *self);
+    void (*set)(struct s_dict *self, char *key, void *value, t_type type);
+    t_value *(*get)(struct s_dict *self, char *key);
+    void (*hash)(uint32_t *key, uint32_t *hacher);
+    void (*padding)(const char *s, uint32_t *table);
 } t_dict;
 
-void set(struct s_dict *self, t_value *value, t_type type)
+void set(struct s_dict *self, char *key, void *value, t_type type)
 {
-    return;
+    uint32_t buf_hash[16];
+    uint32_t  *hacher = calloc(4, sizeof(uint32_t));
+    if (type == V_CHAR)
+    {
+        return;
+    }
+    else if (type == V_INT)
+    {
+        self->padding(key, buf_hash);
+        self->hash(buf_hash, hacher);
+        t_value *val;
+        val = calloc(1, sizeof(t_value));
+        val->data.d = *(int*)value;
+        val->type = type;
+        self->buffer[hacher[0] % self->len_buf] = val;
+    }
+    else if (type == V_FLOAT)
+    {
+        return;
+    }
+    else if (type == V_PTR)
+    {
+        return;
+    }
+    else if (type == V_STRING)
+    {
+        return;
+    }
+    free(hacher);
 }
 
-void *get(t_dict *self)
+t_value *get(t_dict *self, char *key)
 {
-    void *res = calloc(10, 8);
-    return res;
+    uint32_t buf_hash[16];
+    uint32_t  *hacher = calloc(4, sizeof(uint32_t));
+    self->padding(key, buf_hash);
+    self->hash(buf_hash, hacher);
+    free(hacher);
+    return self->buffer[hacher[0] % self->len_buf];
 }
 
 uint32_t rol(uint32_t x, uint32_t s)
@@ -61,7 +95,7 @@ uint32_t F(uint32_t B, uint32_t C, uint32_t D, uint32_t *key, int i)
 }
 
 
-static void padding(const char *s, uint32_t *table)
+void padding(const char *s, uint32_t *table)
 {
     int i = 0;
     int j = 0;
@@ -130,6 +164,17 @@ static void hash(uint32_t *key, uint32_t *hacher)
     hacher[3] = d;
 }
 
+void __init__dict(t_dict *self, int len, int cap)
+{
+    self->set = set;
+    self->get = get;
+    self->hash = hash;
+    self->len_buf = len;
+    self->cap_buf = cap;
+    self->buffer = calloc(self->len_buf, sizeof(t_value *));
+    self->padding = padding;
+}
+
 int main(void)
 {
     // uint32_t x = 0x12345678;
@@ -144,16 +189,11 @@ int main(void)
     //     printf("_");
     // }
     t_value val;
-    val.type = V_INT;
-    val.data.d = 10;
-    printf("%d\n", val.data.d);
-    val.type = V_STRING;
     val.data.s = "str";
-    printf("%s\n", val.data.s);
     t_dict dict = {0};
-    dict.set = set;
-    dict.get = get;
-    dict.len_buf = 20;
-    dict.cap_buf = 15;
-    dict.buffer = calloc(dict.len_buf, sizeof(t_value));
+    __init__dict(&dict, 20, 15);
+    int data = 42;
+    dict.set(&dict, "exemple", (void *)&data, V_STRING);
+    printf("%d",dict.get(&dict, "exemple")->data.d);
 }
+//void set(struct s_dict *self, char *key, t_value *value, t_type type)
