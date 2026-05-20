@@ -2,6 +2,51 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+void set(t_dict *self, void *value, int type)
+{
+
+}
+
+union type
+{
+    int entier;
+    double flottant;
+    void *pointeur;
+    char lettre;
+    char *string;
+};
+
+typedef struct s_value
+{
+    unsigned entier;
+    unsigned flottant;
+    unsigned pointeur;
+    unsigned lettre;
+    unsigned string;
+    union
+    {
+        int d;
+        double f;
+        void *p;
+        char c;
+        char *s;
+    } u;
+} t_value;
+
+void **get(t_dict *self)
+{
+    return res // res[0] == pointer to the value, res[1] = type of the value
+}
+
+typedef struct s_dict
+{
+    void *buffer;
+    size_t len_buf;
+    size_t cap_buf;
+    void (*set)(struct s_dict *self, void *v, int type);
+    void *(*get)(struct s_dict *self);
+} t_dict;
+
 uint32_t rol(uint32_t x, uint32_t s)
 {
     s &= 31;
@@ -92,15 +137,26 @@ static void hash(uint32_t *key, uint32_t *hacher)
 
 int main(void)
 {
-    uint32_t x = 0x12345678;
-    uint32_t key[16];
-    uint32_t hacher[4];
+    // uint32_t x = 0x12345678;
+    // uint32_t key[16];
+    // uint32_t hacher[4];
 
-    padding("abcde", key);
-    hash(key, hacher);
-    for (int i = 0; i < 4; i++)
-    {
-        printf("%x", hacher[i]);
-        printf("_");
-    }
+    // padding("abcde", key);
+    // hash(key, hacher);
+    // for (int i = 0; i < 4; i++)
+    // {
+    //     printf("%x", hacher[i]);
+    //     printf("_");
+    // }
+    t_value a = {0};
+    t_value b = {0};
+
+    a.entier = 1;
+    a.u.d = 10;
+    b.flottant = 1;
+    b.u.f = 10.56;
+    if (a.entier)
+        printf("%d\n", a.u.d);
+    if (b.flottant)
+        printf("%f\n", b.u.f);
 }
