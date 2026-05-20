@@ -71,7 +71,13 @@ void set(struct s_dict *self, char *key, void *value, t_type type)
     }
     else if (type == V_STRING)
     {
-        return;
+        self->padding(key, buf_hash);
+        self->hash(buf_hash, hacher);
+        t_value *val;
+        val = calloc(1, sizeof(t_value));
+        val->data.s = (char *)value;
+        val->type = type;
+        self->buffer[hacher[0] % self->len_buf] = val;
     }
 }
 
@@ -199,18 +205,19 @@ int main(void)
     //     printf("_");
     // }
     t_value val;
-    val.data.s = "str";
+    val.data.s = "maria";
     t_dict dict = {0};
     __init__dict(&dict, 20);
     int data = 42;
-    dict.set(&dict, "exemple", (void *)&data, V_INT);
-    // for (int i = 0; i < dict.len_buf; i++)
-    // {
-    //     if (dict.buffer[i])
-    //     {
-    //         printf("%p\n", dict.buffer[i]);
-    //     }
-    // }
-    t_value *test = dict.get(&dict, "exemple");
-    printf("%d\n", test->data.d);
+    dict.set(&dict, "selivanova", (void *)val.data.s, V_STRING);
+    for (int i = 0; i < dict.len_buf; i++)
+    {
+        if (dict.buffer[i])
+        {
+            printf("%p\n", dict.buffer[i]);
+        }
+    }
+    t_value *test = dict.get(&dict, "selivanova");
+    printf("%p\n", test);
+     printf("%s\n", test->data.s);
 }
