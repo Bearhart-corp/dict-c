@@ -2,50 +2,45 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void set(t_dict *self, void *value, int type)
-{
+typedef enum {
+    V_INT,
+    V_FLOAT,
+    V_PTR,
+    V_CHAR,
+    V_STRING
+} t_type;
 
-}
+typedef struct s_value {
+    t_type type;
 
-union type
-{
-    int entier;
-    double flottant;
-    void *pointeur;
-    char lettre;
-    char *string;
-};
-
-typedef struct s_value
-{
-    unsigned entier;
-    unsigned flottant;
-    unsigned pointeur;
-    unsigned lettre;
-    unsigned string;
-    union
-    {
+    union {
         int d;
         double f;
         void *p;
         char c;
         char *s;
-    } u;
+    } data;
 } t_value;
-
-void **get(t_dict *self)
-{
-    return res // res[0] == pointer to the value, res[1] = type of the value
-}
 
 typedef struct s_dict
 {
-    void *buffer;
+    t_value *buffer;
     size_t len_buf;
     size_t cap_buf;
-    void (*set)(struct s_dict *self, void *v, int type);
+    void (*set)(struct s_dict *self, t_value *value, t_type type);
     void *(*get)(struct s_dict *self);
 } t_dict;
+
+void set(struct s_dict *self, t_value *value, t_type type)
+{
+    return;
+}
+
+void *get(t_dict *self)
+{
+    void *res = calloc(10, 8);
+    return res;
+}
 
 uint32_t rol(uint32_t x, uint32_t s)
 {
@@ -148,15 +143,17 @@ int main(void)
     //     printf("%x", hacher[i]);
     //     printf("_");
     // }
-    t_value a = {0};
-    t_value b = {0};
-
-    a.entier = 1;
-    a.u.d = 10;
-    b.flottant = 1;
-    b.u.f = 10.56;
-    if (a.entier)
-        printf("%d\n", a.u.d);
-    if (b.flottant)
-        printf("%f\n", b.u.f);
+    t_value val;
+    val.type = V_INT;
+    val.data.d = 10;
+    printf("%d\n", val.data.d);
+    val.type = V_STRING;
+    val.data.s = "str";
+    printf("%s\n", val.data.s);
+    t_dict dict = {0};
+    dict.set = set;
+    dict.get = get;
+    dict.len_buf = 20;
+    dict.cap_buf = 15;
+    dict.buffer = calloc(dict.len_buf, sizeof(t_value));
 }
