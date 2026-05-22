@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 typedef struct s_abcd
 {
@@ -29,7 +30,7 @@ typedef enum {
 
 typedef struct s_value {
     t_type type;
-
+    char *key;
     union {
         int d;
         double f;
@@ -37,6 +38,7 @@ typedef struct s_value {
         char c;
         char *s;
     } data;
+    struct s_value* next;
 } t_value;
 
 typedef struct s_dict
@@ -59,5 +61,6 @@ void set(struct s_dict *self, char *key, void *value, t_type type);
 void padding(const char *s, uint32_t *table);
 void hash(t_dict *self, uint32_t *key, uint32_t *hacher);
 void __realoc__(t_dict *self);
+void __init__value(t_value *self, t_type type, void *value, char *key);
 
 #endif
