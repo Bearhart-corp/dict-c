@@ -1,7 +1,3 @@
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "dict.h"
 
 void __realoc__(t_dict *self)
@@ -19,40 +15,51 @@ void set(t_dict *self, char *key, void *value, t_type type)
     uint32_t buf_hash[16];
     uint32_t  hacher[4];
     t_value *val;
+    size_t index;
 
     self->cur_use += 1;
+    val = calloc(1, sizeof(t_value));
+    __init__value(val, type, value, key);
     memset(buf_hash, 0, 16 * sizeof(uint32_t));
     self->padding(key, buf_hash);
     self->hash(self, buf_hash, hacher);
     if (self->cur_use > self->len_buf)
         self->__realoc__(self);
-    val = calloc(1, sizeof(t_value));
-    if (type == V_CHAR)
-        val->data.c = *(char *)value;
-    else if (type == V_INT)
-        val->data.d = *(int*)value;
-    else if (type == V_FLOAT)
-        val->data.f = *(double*)value;
-    else if (type == V_PTR)
-        val->data.p = value;
-    else if (type == V_STRING)
-        val->data.s = (char*)value;
-    val->type = type;
-    if (self->buffer[hacher[0] % self->len_buf])
-        self->buffer[hacher[0] % self->len_buf] = val;
+    index = hacher[0] % self->len_buf;
+    if (self->buffer[index] == NULL)
+    {
+        write(1, "ici", 3);
+        self->buffer[index] = val;
+        
+    }
     else
-        sleep(0.5); // faire la linked list et pas oublier de stocker les clefs
+        while (self->buffer[index])
+            index = (size_t)(self->buffer[index]->next - self->buffer[index]);
+    self->buffer[index] = val;
 }
+
+// if (strcmp(key, "truc") == 0)
+//     {
+//         write(1, key, 4);
+//         exit(1);
+//     }
 
 t_value *get(t_dict *self, char *key)
 {
     uint32_t buf_hash[16];
     uint32_t hacher[4];
+    size_t index;
     self->padding(key, buf_hash);
     self->hash(self, buf_hash, hacher);
-    if (self->buffer[hacher[0] % self->len_buf] == 0)
-        return NULL;
-    return self->buffer[hacher[0] % self->len_buf];
+    index = hacher[0] % self->len_buf;
+    while (self->buffer[index])
+    {
+        if (strcmp(key, self->buffer[index]->key) == 0)
+            return self->buffer[index];
+        else
+            index = (size_t)(self->buffer[index]->next - self->buffer[index]);
+    }
+    return NULL;
 }
 
 uint32_t rol(uint32_t x, uint32_t s)
@@ -126,11 +133,26 @@ void hash(t_dict *self, uint32_t *key, uint32_t *hacher)
 int main(void)
 {
     t_value val;
+    t_value val1;
+    t_value val2;
+    t_value val3;
     t_dict dict;
 
     val.data.d = 42;
-    __init__dict(&dict, 20);
+    val1.data.d = 10;
+    val2.data.d = 12;
+    val3.data.d = 4;
+    __init__dict(&dict, 4);
     dict.set(&dict, "ecole42", (void *)&val.data.d, V_INT);
+    dict.set(&dict, "truc", (void *)&val1.data.d, V_INT);
+    // dict.set(&dict, "machin", (void *)&val2.data.d, V_INT);
+    // dict.set(&dict, "chose", (void *)&val3.data.d, V_INT);
     t_value *test = dict.get(&dict, "ecole42");
     printf("%d\n", test->data.d);
+    // test = dict.get(&dict, "truc");
+    // printf("%d\n", test->data.d);
+    // test = dict.get(&dict, "machin");
+    // printf("%d\n", test->data.d);
+    // test = dict.get(&dict, "chose");
+    // printf("%d\n", test->data.d);
 }
