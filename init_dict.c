@@ -56,7 +56,38 @@ void __init__dict(t_dict *self, int len)
 }
 void __destructeur__dict(t_dict *self)
 {
+    int i;
+    t_value *ptr;
+
+    i = -1;
+    ptr = self->buffer[i];
+    while (++i < self->cur_use)
+    {
+        while (ptr->next)
+        {
+            ptr = ptr->next;
+            free(self->buffer[i]);
+
+        }
+    }
     free(self->buffer);
     free(self->vars);
     free(self->cst);
+}
+
+void __init__value(t_value *self, t_type type, void *value, char *key)
+{
+    self->type = type;
+    self->key = key;
+    if (type == V_CHAR)
+        self->data.c = *(char *)value;
+    else if (type == V_INT)
+        self->data.d = *(int*)value;
+    else if (type == V_FLOAT)
+        self->data.f = *(double*)value;
+    else if (type == V_PTR)
+        self->data.p = value;
+    else if (type == V_STRING)
+        self->data.s = (char*)value;
+    self->next = NULL;
 }
