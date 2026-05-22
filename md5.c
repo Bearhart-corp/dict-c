@@ -5,8 +5,8 @@ void __realoc__(t_dict *self)
     t_value **tmp;
     tmp = self->buffer;
     self->buffer = calloc(self->len_buf << 1, sizeof(t_value *));
+    memcpy(self->buffer, tmp, self->len_buf * sizeof(t_value *));
     self->len_buf <<= 1;
-    memcpy(self->buffer, tmp, self->len_buf * sizeof(t_value));
     free(tmp);
 }
 
@@ -28,14 +28,15 @@ void set(t_dict *self, char *key, void *value, t_type type)
     index = hacher[0] % self->len_buf;
     if (self->buffer[index] == NULL)
     {
-        write(1, "ici", 3);
         self->buffer[index] = val;
-        
     }
     else
-        while (self->buffer[index])
-            index = (size_t)(self->buffer[index]->next - self->buffer[index]);
-    self->buffer[index] = val;
+    {
+        t_value *tmp = self->buffer[index];
+        while (tmp->next)
+            tmp = tmp->next;
+        tmp->next = val;
+    }
 }
 
 // if (strcmp(key, "truc") == 0)
@@ -52,12 +53,12 @@ t_value *get(t_dict *self, char *key)
     self->padding(key, buf_hash);
     self->hash(self, buf_hash, hacher);
     index = hacher[0] % self->len_buf;
-    while (self->buffer[index])
+    t_value *tmp = self->buffer[index];
+    while (tmp)
     {
-        if (strcmp(key, self->buffer[index]->key) == 0)
-            return self->buffer[index];
-        else
-            index = (size_t)(self->buffer[index]->next - self->buffer[index]);
+        if (strcmp(tmp->key, key) == 0)
+            return tmp;
+        tmp = tmp->next;
     }
     return NULL;
 }
@@ -118,7 +119,7 @@ void hash(t_dict *self, uint32_t *key, uint32_t *hacher)
     k = self->cst->k;
     while (++i < 64)
     {
-        tmp = self->vars->c;
+        tmp = c;
         c = b;
         b += rol(a + F(b, c, d, key, i) + k[i], self->cst->s_rot[i]);
         a = d;
@@ -145,14 +146,14 @@ int main(void)
     __init__dict(&dict, 4);
     dict.set(&dict, "ecole42", (void *)&val.data.d, V_INT);
     dict.set(&dict, "truc", (void *)&val1.data.d, V_INT);
-    // dict.set(&dict, "machin", (void *)&val2.data.d, V_INT);
-    // dict.set(&dict, "chose", (void *)&val3.data.d, V_INT);
+    dict.set(&dict, "machin", (void *)&val2.data.d, V_INT);
+    dict.set(&dict, "chose", (void *)&val3.data.d, V_INT);
     t_value *test = dict.get(&dict, "ecole42");
     printf("%d\n", test->data.d);
-    // test = dict.get(&dict, "truc");
-    // printf("%d\n", test->data.d);
-    // test = dict.get(&dict, "machin");
-    // printf("%d\n", test->data.d);
-    // test = dict.get(&dict, "chose");
-    // printf("%d\n", test->data.d);
+    test = dict.get(&dict, "truc");
+    printf("%d\n", test->data.d);
+    test = dict.get(&dict, "machin");
+    printf("%d\n", test->data.d);
+    test = dict.get(&dict, "chose");
+    printf("%d\n", test->data.d);
 }
