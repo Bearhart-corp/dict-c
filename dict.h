@@ -48,9 +48,11 @@ typedef struct s_dict
     size_t cur_use;
     void (*set)(struct s_dict *self, char *key, void *value, t_type type);
     t_value *(*get)(struct s_dict *self, char *key);
-    void (*hash)(struct s_dict *self, uint32_t *key, uint32_t *hacher);
-    void (*padding)(const char *s, uint32_t *table);
-    void (*__realoc__)(struct s_dict *self);
+    size_t (*hash2)(struct s_dict *self, uint32_t *key, uint32_t *hacher);
+    size_t (*hash)(struct s_dict *self, const char *s);
+    void (*__realoc__)(struct s_dict *self, size_t len);
+    void (*__destructeur__dict)(struct s_dict *self);
+    void (*print_dict)(struct s_dict *self);
     t_abcd *vars;
     t_const *cst;
 } t_dict;
@@ -58,9 +60,17 @@ typedef struct s_dict
 void __init__dict(t_dict *self, int len);
 t_value *get(t_dict *self, char *key);
 void set(struct s_dict *self, char *key, void *value, t_type type);
-void padding(const char *s, uint32_t *table);
-void hash(t_dict *self, uint32_t *key, uint32_t *hacher);
-void __realoc__(t_dict *self);
+size_t hash(t_dict *self, const char *s);
+size_t hash2(t_dict *self, uint32_t *key, uint32_t *hacher);
+void __realoc__(t_dict *self, size_t len);
 void __init__value(t_value *self, t_type type, void *value, char *key);
+void __destructeur__dict(t_dict *self);
+///// hash functions
+uint32_t rol(uint32_t x, uint32_t s);
+uint32_t F(uint32_t B, uint32_t C, uint32_t D, uint32_t *key, int i);
+
+//////////dict
+
+void print_dict(struct s_dict *self);
 
 #endif
