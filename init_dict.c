@@ -45,29 +45,32 @@ void __init__dict(t_dict *self, int len)
     __init__const(cst);
     self->set = set;
     self->get = get;
+    self->print_dict = print_dict;
     self->__realoc__ = __realoc__;
+    self->__destructeur__dict = __destructeur__dict;
     self->hash = hash;
     self->len_buf = len;
     self->cur_use = 0;
-    self->buffer = calloc(self->len_buf, sizeof(t_value *));
-    self->padding = padding;
+    self->buffer = calloc(len, sizeof(t_value *));
     self->vars = vars;
     self->cst = cst;
 }
+
 void __destructeur__dict(t_dict *self)
 {
     int i;
     t_value *ptr;
+    t_value *ptr2;
 
     i = -1;
-    ptr = self->buffer[i];
-    while (++i < self->cur_use)
+    while (++i < self->len_buf)
     {
-        while (ptr->next)
+        ptr = self->buffer[i];
+        while (ptr)
         {
-            ptr = ptr->next;
-            free(self->buffer[i]);
-
+            ptr2 = ptr->next;
+            free(ptr);
+            ptr = ptr2;
         }
     }
     free(self->buffer);
